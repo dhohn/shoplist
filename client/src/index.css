@@ -254,6 +254,105 @@ html, body {
   animation: highlight-flash 1.5s ease-out forwards;
 }
 
+/* Home screen */
+.home-footer {
+  padding: 16px;
+  background: white;
+  border-top: 1px solid var(--border);
+}
+
+.new-list-btn {
+  width: 100%;
+  height: var(--touch);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: white;
+  color: var(--green);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.new-list-btn:active {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch);
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 4px 8px 4px 16px;
+}
+
+.list-row__name {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px 0;
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+}
+
+.list-row__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.list-row__btn {
+  width: var(--touch);
+  height: var(--touch);
+  border: none;
+  background: transparent;
+  color: var(--grey);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.list-row__btn:active {
+  background: #f3f4f6;
+}
+
+.list-row__btn--delete:active {
+  color: var(--red);
+  background: #fee2e2;
+}
+
+/* Back button */
+.back-btn {
+  width: var(--touch);
+  height: var(--touch);
+  border: none;
+  background: transparent;
+  color: var(--green);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.back-btn:active {
+  background: var(--green-light);
+}
+
 /* iOS install banner */
 .ios-banner {
   position: fixed;

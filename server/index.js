@@ -15,6 +15,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '1234', 10);
 if (isNaN(PORT) || PORT < 1 || PORT > 65535) throw new Error(`Invalid PORT: ${process.env.PORT}`);
 
+// First path segment acts as a shared secret, e.g. BASE_PATH=xk29qz
+// means only /xk29qz/* serves the app. Unset = no restriction (dev).
+const BASE_PATH = process.env.BASE_PATH || null;
+
 const DATA_DIR = path.join(__dirname, 'data');
 const MAX_STATE_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -82,8 +86,15 @@ app.use(helmet({
 
 // Serve client dist in production
 const clientDist = path.join(__dirname, '../client/dist');
+
+// Static assets (JS, CSS, icons) are served freely — no sensitive data in them
 app.use(express.static(clientDist));
-app.get('*', (_req, res) => {
+
+// Only serve the app shell for paths that start with BASE_PATH
+app.get('*', (req, res) => {
+  if (BASE_PATH && req.path.split('/')[1] !== BASE_PATH) {
+    return res.status(404).send('Not found');
+  }
   const indexPath = path.join(clientDist, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) res.status(404).send('Not found — run `npm run build` in client/');

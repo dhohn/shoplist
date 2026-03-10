@@ -2,21 +2,47 @@ import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { IndexeddbPersistence } from 'y-indexeddb';
 
-const DOC_NAME = 'shoplist';
-
-// Singleton ydoc — lives outside React to survive Strict Mode double-mount
-export const ydoc = new Y.Doc();
-export const yItems = ydoc.getArray('items');
-
-// Restore state from IndexedDB instantly (enables offline)
-export const idbPersistence = new IndexeddbPersistence(DOC_NAME, ydoc);
-
-// In dev, use Vite's /ws proxy → ws://localhost:1234
-// In production, VITE_WS_URL points to the deployed server
 function getWsUrl() {
   if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${protocol}//${location.host}/ws`;
 }
 
-export const wsProvider = new WebsocketProvider(getWsUrl(), DOC_NAME, ydoc);
+function indexDocName() {
+  // pathname is /<base>/<household> — use household segment as the scope
+  // e.g. /xk29qz/shop → 'shop-index', /xk29qz/ → 'default-index'
+  const segments = location.pathname.split('/').filter(Boolean);
+  const household = segments[1] || 'default';
+  return `${household}-index`;
+}
+
+// Cache lives at module scope — survives React Strict Mode double-mount
+const docCache = new Map();
+
+function getDoc(docName) {
+  if (docCache.has(docName)) return docCache.get(docName);
+
+  const ydoc = new Y.Doc();
+  const idbPersistence = new IndexeddbPersistence(docName, ydoc);
+  const wsProvider = new WebsocketProvider(getWsUrl(), docName, ydoc);
+
+  const entry = { ydoc, wsProvider, idbPersistence };
+  docCache.set(docName, entry);
+  return entry;
+}
+
+export function getIndexDoc() {
+  return getDoc(indexDocName());
+}
+
+export function getListDoc(uuid) {
+  return getDoc(uuid);
+}
+
+export function destroyDoc(docName) {
+  const entry = docCache.get(docName);
+  if (!entry) return;
+  entry.wsProvider.destroy();
+  entry.idbPersistence.destroy();
+  docCache.delete(docName);
+}

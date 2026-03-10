@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { wsProvider, idbPersistence } from '../ydoc.js';
 
-export function StatusBar() {
+export function StatusBar({ wsProvider, idbPersistence }) {
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
@@ -25,12 +24,18 @@ export function StatusBar() {
       window.removeEventListener('online', update);
       window.removeEventListener('offline', update);
     };
-  }, []);
+  }, [wsProvider]);
 
-  const [idbReady, setIdbReady] = useState(false);
+  const [idbReady, setIdbReady] = useState(idbPersistence.synced);
   useEffect(() => {
-    idbPersistence.on('synced', () => setIdbReady(true));
-  }, []);
+    if (idbPersistence.synced) {
+      setIdbReady(true);
+      return;
+    }
+    const handler = () => setIdbReady(true);
+    idbPersistence.on('synced', handler);
+    return () => idbPersistence.off('synced', handler);
+  }, [idbPersistence]);
 
   if (!idbReady && status === 'connecting') {
     return <div className="status status--loading">○ Loading…</div>;
