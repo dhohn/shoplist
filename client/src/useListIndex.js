@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getIndexDoc, destroyDoc } from './ydoc.js';
+import { log } from './log.js';
 
 export function useListIndex() {
   const { ydoc, idbPersistence } = getIndexDoc();
@@ -17,7 +18,11 @@ export function useListIndex() {
   const [indexReady, setIndexReady] = useState(idbPersistence.synced);
 
   useEffect(() => {
-    const handler = () => setLists(getSnapshot());
+    const handler = () => {
+      const snapshot = getSnapshot();
+      log('index:update', snapshot.map((l) => `${l.id.slice(0, 8)}… "${l.name}"`));
+      setLists(snapshot);
+    };
     yLists.observe(handler);
     return () => yLists.unobserve(handler);
   }, []);
@@ -34,11 +39,13 @@ export function useListIndex() {
 
   // id is optional — callers can provide it when joining a shared list
   const addList = useCallback((name, id = crypto.randomUUID()) => {
+    log('index:addList', id, `"${name}"`);
     yLists.set(id, { name: name.trim(), createdAt: Date.now() });
     return id;
   }, []);
 
   const removeList = useCallback((uuid) => {
+    log('index:removeList', uuid);
     yLists.delete(uuid);
     destroyDoc(uuid);
   }, []);

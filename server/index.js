@@ -19,6 +19,12 @@ if (isNaN(PORT) || PORT < 1 || PORT > 65535) throw new Error(`Invalid PORT: ${pr
 // means only /xk29qz/* serves the app. Unset = no restriction (dev).
 const BASE_PATH = process.env.BASE_PATH || null;
 
+// Verbose logging — enable with DEBUG=true env var
+const DEBUG = process.env.DEBUG === 'true';
+function log(...args) {
+  if (DEBUG) console.log('[shoplist]', new Date().toISOString(), ...args);
+}
+
 const DATA_DIR = path.join(__dirname, 'data');
 const MAX_STATE_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -44,6 +50,7 @@ setPersistence({
       } else {
         const data = await fs.promises.readFile(filePath);
         Y.applyUpdate(ydoc, data);
+        log('persist:loaded', docName, `(${stat.size} bytes)`);
       }
     } catch (e) {
       if (e.code !== 'ENOENT') {
@@ -59,6 +66,7 @@ setPersistence({
         try {
           const state = Y.encodeStateAsUpdate(ydoc);
           await fs.promises.writeFile(filePath, state);
+          log('persist:saved', docName, `(${state.byteLength} bytes)`);
         } catch (err) {
           console.error(`Failed to save state for "${docName}":`, err.message);
         }
@@ -93,6 +101,7 @@ app.use(express.static(clientDist));
 // Only serve the app shell for paths that start with BASE_PATH
 app.get('*', (req, res) => {
   if (BASE_PATH && req.path.split('/')[1] !== BASE_PATH) {
+    log('http:404', req.path);
     return res.status(404).send('Not found');
   }
   const indexPath = path.join(clientDist, 'index.html');
@@ -106,6 +115,11 @@ const server = createServer(app);
 // WebSocket server with per-connection rate limiting
 const wss = new WebSocketServer({ server });
 wss.on('connection', (ws, req) => {
+  const docName = req.url.split('?')[0].replace(/^\/+/, '').split('/').pop() || '(unknown)';
+  log('ws:connect', docName);
+
+  ws.on('close', () => log('ws:disconnect', docName));
+
   let msgCount = 0;
   let windowStart = Date.now();
   let rateLimited = false;
@@ -120,6 +134,7 @@ wss.on('connection', (ws, req) => {
     }
     if (++msgCount > RATE_LIMIT_MAX) {
       rateLimited = true;
+      console.warn('[shoplist] rate limit exceeded for doc:', docName);
       ws.close(1008, 'Rate limit exceeded');
     }
   });

@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { log } from './log.js';
 
 function getWsUrl() {
   if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
@@ -22,9 +23,14 @@ const docCache = new Map();
 function getDoc(docName) {
   if (docCache.has(docName)) return docCache.get(docName);
 
+  log('doc:create', docName);
+
   const ydoc = new Y.Doc();
   const idbPersistence = new IndexeddbPersistence(docName, ydoc);
   const wsProvider = new WebsocketProvider(getWsUrl(), docName, ydoc);
+
+  idbPersistence.on('synced', () => log('idb:synced', docName));
+  wsProvider.on('status', ({ status }) => log('ws:status', docName, status));
 
   const entry = { ydoc, wsProvider, idbPersistence };
   docCache.set(docName, entry);
@@ -42,6 +48,7 @@ export function getListDoc(uuid) {
 export function destroyDoc(docName) {
   const entry = docCache.get(docName);
   if (!entry) return;
+  log('doc:destroy', docName);
   entry.wsProvider.destroy();
   entry.idbPersistence.destroy();
   docCache.delete(docName);

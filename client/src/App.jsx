@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { HomeScreen } from './components/HomeScreen.jsx';
 import { ListScreen } from './components/ListScreen.jsx';
 import { useListIndex } from './useListIndex.js';
+import { log } from './log.js';
 
 function parseHash(hash) {
   const match = hash.match(/^#\/list\/([^/]+)$/);
@@ -19,7 +20,7 @@ export function App() {
     return parsed;
   });
 
-  const { lists, addList, indexReady } = useListIndex();
+  const { lists, indexReady } = useListIndex();
 
   // Sync the URL to match the initial route (e.g. when redirected via lastList)
   useEffect(() => {
@@ -31,18 +32,23 @@ export function App() {
   // Update route state when the hash changes
   useEffect(() => {
     function onHashChange() {
-      setRoute(parseHash(location.hash));
+      const next = parseHash(location.hash);
+      log('route:change', next);
+      setRoute(next);
     }
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  // When opening a shared list URL not yet in our index, add a placeholder.
-  // The real name will overwrite it once the index doc syncs from the server.
+  // When opening a shared list URL not in our index, log it and wait for
+  // WS sync to bring the real name — do NOT write a placeholder, as that
+  // would clobber the real name via Y.js last-write-wins.
   useEffect(() => {
     if (route.screen !== 'list' || !indexReady) return;
     const known = lists.find((l) => l.id === route.listId);
-    if (!known) addList('List', route.listId);
+    if (!known) {
+      log('route:unknown-list', route.listId, '— waiting for WS sync');
+    }
   }, [route.screen, route.listId, indexReady]);
 
   function openList(id) {
