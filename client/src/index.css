@@ -302,6 +302,12 @@ html, body {
   align-items: center;
 }
 
+.list-row__syncing {
+  font-size: 0.75rem;
+  color: var(--grey);
+  font-weight: 400;
+}
+
 .list-row__actions {
   display: flex;
   gap: 4px;

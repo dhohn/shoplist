@@ -39,6 +39,7 @@ export function HomeScreen({ onOpenList }) {
                   onClick={() => onOpenList(list.id)}
                 >
                   {list.name}
+                  {list.isForeign && <span className="list-row__syncing"> (syncing…)</span>}
                 </button>
                 <div className="list-row__actions">
                   <button

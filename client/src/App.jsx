@@ -20,7 +20,7 @@ export function App() {
     return parsed;
   });
 
-  const { lists, indexReady } = useListIndex();
+  const { lists, indexReady, joinForeignList } = useListIndex();
 
   // Sync the URL to match the initial route (e.g. when redirected via lastList)
   useEffect(() => {
@@ -40,16 +40,17 @@ export function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  // When opening a shared list URL not in our index, log it and wait for
-  // WS sync to bring the real name — do NOT write a placeholder, as that
-  // would clobber the real name via Y.js last-write-wins.
+  // When opening a shared list URL not in our index, track it as a foreign
+  // list in localStorage. Never writes to the shared Y.Map — real name
+  // arrives via WS sync and promotes it automatically.
   useEffect(() => {
-    if (route.screen !== 'list' || !indexReady) return;
+    if (route.screen !== 'list') return;
     const known = lists.find((l) => l.id === route.listId);
     if (!known) {
-      log('route:unknown-list', route.listId, '— waiting for WS sync');
+      log('route:unknown-list', route.listId, '— joining as foreign list');
+      joinForeignList(route.listId);
     }
-  }, [route.screen, route.listId, indexReady]);
+  }, [route.screen, route.listId]);
 
   function openList(id) {
     location.hash = `#/list/${id}`;
