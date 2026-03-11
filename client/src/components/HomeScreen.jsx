@@ -11,7 +11,13 @@ export function HomeScreen({ onOpenList }) {
   function handleNewList() {
     const name = window.prompt('List name:');
     if (!name || !name.trim()) return;
-    const id = addList(name.trim());
+    const trimmed = name.trim();
+    const duplicate = lists.find((l) => l.name.toLowerCase() === trimmed.toLowerCase());
+    if (duplicate) {
+      window.alert(`A list named "${duplicate.name}" already exists.`);
+      return;
+    }
+    const id = addList(trimmed);
     onOpenList(id);
   }
 
