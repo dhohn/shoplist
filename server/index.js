@@ -99,15 +99,21 @@ app.use(helmet({
 // Serve client dist in production
 const clientDist = path.join(__dirname, '../client/dist');
 
-// Static assets (JS, CSS, icons) are served freely — no sensitive data in them
+// Enforce BASE_PATH before serving anything.
+// Requests to static assets (have a file extension) are allowed through
+// so JS/CSS/icons load correctly for valid paths.
+if (BASE_PATH) {
+  app.use((req, res, next) => {
+    const firstSegment = req.path.split('/')[1];
+    if (firstSegment === BASE_PATH || req.path.match(/\.\w+$/)) return next();
+    log('http:404', req.path);
+    res.status(404).send('Not found');
+  });
+}
+
 app.use(express.static(clientDist));
 
-// Only serve the app shell for paths that start with BASE_PATH
 app.get('*', (req, res) => {
-  if (BASE_PATH && req.path.split('/')[1] !== BASE_PATH) {
-    log('http:404', req.path);
-    return res.status(404).send('Not found');
-  }
   const indexPath = path.join(clientDist, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) res.status(404).send('Not found — run `npm run build` in client/');
