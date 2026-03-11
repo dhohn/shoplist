@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useShoppingList } from '../useShoppingList.js';
-import { getListDoc } from '../ydoc.js';
+import { getListDoc, householdSegment } from '../ydoc.js';
 import { AddItemForm } from './AddItemForm.jsx';
 import { ShoppingItem } from './ShoppingItem.jsx';
 import { StatusBar } from './StatusBar.jsx';
@@ -10,7 +10,7 @@ export function ListScreen({ listId, listName, onBack }) {
   const { wsProvider, idbPersistence } = getListDoc(listId);
 
   useEffect(() => {
-    localStorage.setItem('lastList', listId);
+    localStorage.setItem(`lastList:${householdSegment()}`, listId);
   }, [listId]);
 
   const unchecked = items.filter((i) => !i.checked);

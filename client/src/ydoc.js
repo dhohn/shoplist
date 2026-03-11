@@ -9,7 +9,7 @@ function getWsUrl() {
   return `${protocol}//${location.host}/ws`;
 }
 
-function householdSegment() {
+export function householdSegment() {
   // pathname is /<base>/<household> — use household segment as the scope
   // e.g. /xk29qz/shop → 'shop', /xk29qz/ → 'default'
   const segments = location.pathname.split('/').filter(Boolean);

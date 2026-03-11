@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { HomeScreen } from './components/HomeScreen.jsx';
 import { ListScreen } from './components/ListScreen.jsx';
 import { useListIndex } from './useListIndex.js';
+import { householdSegment } from './ydoc.js';
 import { log } from './log.js';
 
 function parseHash(hash) {
@@ -14,7 +15,7 @@ export function App() {
   const [route, setRoute] = useState(() => {
     const parsed = parseHash(location.hash);
     if (parsed.screen === 'home') {
-      const lastList = localStorage.getItem('lastList');
+      const lastList = localStorage.getItem(`lastList:${householdSegment()}`);
       if (lastList) return { screen: 'list', listId: lastList };
     }
     return parsed;
