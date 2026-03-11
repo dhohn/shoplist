@@ -27,7 +27,8 @@ export function ListScreen({ listId, listName, onBack }) {
           <button
             className="clear-btn"
             onClick={() => {
-              const url = `${location.origin}${location.pathname}#/list/${listId}`;
+              const encodedName = listName ? '/' + encodeURIComponent(listName) : '';
+              const url = `${location.origin}${location.pathname}#/list/${listId}${encodedName}`;
               if (navigator.share) {
                 navigator.share({ title: listName || 'Shopping List', url }).catch(() => {});
               } else if (navigator.clipboard) {
