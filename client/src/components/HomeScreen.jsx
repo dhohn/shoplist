@@ -98,7 +98,12 @@ export function HomeScreen({ onOpenList }) {
             <p className="modal-text">
               On iOS: open the link in Safari, then tap Share → Add to Home Screen to install.
             </p>
-            <div className="modal-url">{location.origin + location.pathname}</div>
+            <input
+              className="modal-url"
+              value={location.origin + location.pathname}
+              readOnly
+              onFocus={(e) => e.target.select()}
+            />
             <button className="modal-share-btn" onClick={handleShare}>
               Share household link
             </button>
