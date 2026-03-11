@@ -65,6 +65,10 @@ setPersistence({
       saveTimer = setTimeout(async () => {
         try {
           const state = Y.encodeStateAsUpdate(ydoc);
+          if (state.byteLength > MAX_STATE_FILE_BYTES) {
+            console.warn(`State for "${docName}" exceeds size limit (${state.byteLength} bytes), skipping save`);
+            return;
+          }
           await fs.promises.writeFile(filePath, state);
           log('persist:saved', docName, `(${state.byteLength} bytes)`);
         } catch (err) {
