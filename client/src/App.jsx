@@ -12,6 +12,20 @@ function parseHash(hash) {
 }
 
 export function App() {
+  // Remember the household path when visiting via browser so the PWA
+  // (which always launches from start_url '/') can redirect back to it.
+  const segments = location.pathname.split('/').filter(Boolean);
+  const hasHousehold = segments.length >= 2;
+  if (hasHousehold) {
+    localStorage.setItem('householdPath', location.pathname);
+  } else {
+    const savedPath = localStorage.getItem('householdPath');
+    if (savedPath) {
+      location.replace(savedPath);
+      return null;
+    }
+  }
+
   const [route, setRoute] = useState(() => {
     const parsed = parseHash(location.hash);
     if (parsed.screen === 'home') {
