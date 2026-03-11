@@ -1,24 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getIndexDoc, destroyDoc } from './ydoc.js';
+import { getIndexDoc, destroyDoc, getListDocName } from './ydoc.js';
 import { log } from './log.js';
-
-const FOREIGN_KEY = 'shoplist:foreign-lists';
-
-function getForeignLists() {
-  try {
-    return JSON.parse(localStorage.getItem(FOREIGN_KEY) || '{}');
-  } catch {
-    return {};
-  }
-}
-
-function saveForeignLists(obj) {
-  localStorage.setItem(FOREIGN_KEY, JSON.stringify(obj));
-}
 
 export function useListIndex() {
   const { ydoc, idbPersistence } = getIndexDoc();
   const yLists = ydoc.getMap('lists');
+  const yMeta = ydoc.getMap('meta');
 
   function getSnapshot() {
     const entries = [];
@@ -30,15 +17,8 @@ export function useListIndex() {
 
   const [lists, setLists] = useState(getSnapshot);
   const [indexReady, setIndexReady] = useState(idbPersistence.synced);
-
-  // Foreign lists: shared URLs joined offline, not yet in the Y.Map
-  const [foreignLists, setForeignLists] = useState(() =>
-    Object.entries(getForeignLists()).map(([id, data]) => ({
-      id,
-      name: data.name || 'Shared List',
-      createdAt: data.joinedAt,
-      isForeign: true,
-    }))
+  const [householdName, setHouseholdNameState] = useState(
+    () => yMeta.get('householdName') || 'My Lists'
   );
 
   useEffect(() => {
@@ -46,28 +26,15 @@ export function useListIndex() {
       const snapshot = getSnapshot();
       log('index:update', snapshot.map((l) => `${l.id.slice(0, 8)}… "${l.name}"`));
       setLists(snapshot);
-
-      // Promote any foreign lists that now appear in the Y.Map
-      const foreign = getForeignLists();
-      const promoted = Object.keys(foreign).filter((id) => yLists.has(id));
-      if (promoted.length > 0) {
-        promoted.forEach((id) => {
-          log('index:promoted', id, '— real name arrived from server');
-          delete foreign[id];
-        });
-        saveForeignLists(foreign);
-        setForeignLists(
-          Object.entries(foreign).map(([id, data]) => ({
-            id,
-            name: data.name || 'Shared List',
-            createdAt: data.joinedAt,
-            isForeign: true,
-          }))
-        );
-      }
     };
     yLists.observe(handler);
     return () => yLists.unobserve(handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setHouseholdNameState(yMeta.get('householdName') || 'My Lists');
+    yMeta.observe(handler);
+    return () => yMeta.unobserve(handler);
   }, []);
 
   useEffect(() => {
@@ -89,36 +56,14 @@ export function useListIndex() {
   const removeList = useCallback((uuid) => {
     log('index:removeList', uuid);
     yLists.delete(uuid);
-    destroyDoc(uuid);
-    // Also clean up if it was a foreign list
-    const foreign = getForeignLists();
-    if (foreign[uuid]) {
-      delete foreign[uuid];
-      saveForeignLists(foreign);
-      setForeignLists((prev) => prev.filter((l) => l.id !== uuid));
-    }
+    destroyDoc(getListDocName(uuid));
   }, []);
 
-  // Store a shared list UUID locally without touching the shared Y.Map.
-  // The real name will arrive via WS sync and promote it automatically.
-  const joinForeignList = useCallback((uuid) => {
-    if (yLists.has(uuid)) return; // already synced, nothing to do
-    const foreign = getForeignLists();
-    if (foreign[uuid]) return; // already tracked
-    log('index:joinForeign', uuid);
-    foreign[uuid] = { joinedAt: Date.now() };
-    saveForeignLists(foreign);
-    setForeignLists((prev) => [
-      ...prev,
-      { id: uuid, name: 'Shared List', createdAt: Date.now(), isForeign: true },
-    ]);
+  const setHouseholdName = useCallback((name) => {
+    const trimmed = name.trim() || 'My Lists';
+    log('index:setHouseholdName', `"${trimmed}"`);
+    yMeta.set('householdName', trimmed);
   }, []);
 
-  // Combined: real lists + foreign lists not yet promoted
-  const allLists = [
-    ...lists,
-    ...foreignLists.filter((f) => !lists.find((l) => l.id === f.id)),
-  ].sort((a, b) => a.createdAt - b.createdAt);
-
-  return { lists: allLists, addList, removeList, indexReady, joinForeignList };
+  return { lists, addList, removeList, indexReady, householdName, setHouseholdName };
 }

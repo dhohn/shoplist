@@ -302,12 +302,6 @@ html, body {
   align-items: center;
 }
 
-.list-row__syncing {
-  font-size: 0.75rem;
-  color: var(--grey);
-  font-weight: 400;
-}
-
 .list-row__actions {
   display: flex;
   gap: 4px;
@@ -357,6 +351,112 @@ html, body {
 
 .back-btn:active {
   background: var(--green-light);
+}
+
+/* Editable title */
+.title--editable {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--green);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+/* Icon button (info etc.) */
+.icon-btn {
+  width: var(--touch);
+  height: var(--touch);
+  border: none;
+  background: transparent;
+  color: var(--grey);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.icon-btn:active {
+  background: #f3f4f6;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-text {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.modal-url {
+  font-size: 0.8rem;
+  color: var(--grey);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  word-break: break-all;
+  font-family: monospace;
+}
+
+.modal-share-btn {
+  height: var(--touch);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--green);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modal-share-btn:active {
+  background: #15803d;
+}
+
+.modal-close-btn {
+  height: var(--touch);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: white;
+  color: var(--grey);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* iOS install banner */

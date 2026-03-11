@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { useListIndex } from '../useListIndex.js';
 import { getIndexDoc } from '../ydoc.js';
 import { StatusBar } from './StatusBar.jsx';
 
 export function HomeScreen({ onOpenList }) {
-  const { lists, addList, removeList, indexReady } = useListIndex();
+  const { lists, addList, removeList, indexReady, householdName, setHouseholdName } = useListIndex();
   const { wsProvider, idbPersistence } = getIndexDoc();
+  const [showInstructions, setShowInstructions] = useState(false);
 
   function handleNewList() {
     const name = window.prompt('List name:');
@@ -18,11 +20,35 @@ export function HomeScreen({ onOpenList }) {
     removeList(id);
   }
 
+  function handleEditName() {
+    const name = window.prompt('Household name:', householdName);
+    if (name === null) return; // cancelled
+    setHouseholdName(name);
+  }
+
+  function handleShare() {
+    const url = location.origin + location.pathname;
+    if (navigator.share) {
+      navigator.share({ title: householdName, url }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).catch(() => window.prompt('Copy this link:', url));
+    } else {
+      window.prompt('Copy this link:', url);
+    }
+  }
+
   return (
     <div className="app">
       <header className="header">
-        <h1 className="title">My Lists</h1>
-        <StatusBar wsProvider={wsProvider} idbPersistence={idbPersistence} />
+        <button className="title title--editable" onClick={handleEditName} aria-label="Edit household name">
+          {householdName}
+        </button>
+        <div className="header-actions">
+          <button className="icon-btn" onClick={() => setShowInstructions(true)} aria-label="Instructions">
+            ⓘ
+          </button>
+          <StatusBar wsProvider={wsProvider} idbPersistence={idbPersistence} />
+        </div>
       </header>
 
       <main className="list-container">
@@ -39,7 +65,6 @@ export function HomeScreen({ onOpenList }) {
                   onClick={() => onOpenList(list.id)}
                 >
                   {list.name}
-                  {list.isForeign && <span className="list-row__syncing"> (syncing…)</span>}
                 </button>
                 <div className="list-row__actions">
                   <button
@@ -61,6 +86,28 @@ export function HomeScreen({ onOpenList }) {
           + New List
         </button>
       </div>
+
+      {showInstructions && (
+        <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="modal-title">Household Access</h2>
+            <p className="modal-text">
+              All lists are visible to <strong>everyone with this link</strong> and sync automatically in real time.
+              Share it with anyone you want to give access to all your lists.
+            </p>
+            <p className="modal-text">
+              On iOS: open the link in Safari, then tap Share → Add to Home Screen to install.
+            </p>
+            <div className="modal-url">{location.origin + location.pathname}</div>
+            <button className="modal-share-btn" onClick={handleShare}>
+              Share household link
+            </button>
+            <button className="modal-close-btn" onClick={() => setShowInstructions(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

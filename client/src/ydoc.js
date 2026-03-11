@@ -9,12 +9,19 @@ function getWsUrl() {
   return `${protocol}//${location.host}/ws`;
 }
 
-function indexDocName() {
+function householdSegment() {
   // pathname is /<base>/<household> — use household segment as the scope
-  // e.g. /xk29qz/shop → 'shop-index', /xk29qz/ → 'default-index'
+  // e.g. /xk29qz/shop → 'shop', /xk29qz/ → 'default'
   const segments = location.pathname.split('/').filter(Boolean);
-  const household = segments[1] || 'default';
-  return `${household}-index`;
+  return segments[1] || 'default';
+}
+
+function indexDocName() {
+  return `${householdSegment()}-index`;
+}
+
+export function getListDocName(uuid) {
+  return `${householdSegment()}-${uuid}`;
 }
 
 // Cache lives at module scope — survives React Strict Mode double-mount
@@ -42,7 +49,7 @@ export function getIndexDoc() {
 }
 
 export function getListDoc(uuid) {
-  return getDoc(uuid);
+  return getDoc(getListDocName(uuid));
 }
 
 export function destroyDoc(docName) {

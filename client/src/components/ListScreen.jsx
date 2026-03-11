@@ -24,23 +24,6 @@ export function ListScreen({ listId, listName, onBack }) {
         </button>
         <h1 className="title">{listName || 'List'}</h1>
         <div className="header-actions">
-          <button
-            className="clear-btn"
-            onClick={() => {
-              const encodedName = listName ? '/' + encodeURIComponent(listName) : '';
-              const url = `${location.origin}${location.pathname}#/list/${listId}${encodedName}`;
-              if (navigator.share) {
-                navigator.share({ title: listName || 'Shopping List', url }).catch(() => {});
-              } else if (navigator.clipboard) {
-                navigator.clipboard.writeText(url).catch(() => window.prompt('Copy this link:', url));
-              } else {
-                window.prompt('Copy this link:', url);
-              }
-            }}
-            aria-label="Share list"
-          >
-            Share
-          </button>
           {items.length > 0 && (
             <button
               className="clear-btn"
