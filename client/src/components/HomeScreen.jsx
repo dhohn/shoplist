@@ -8,9 +8,9 @@ import { StatusBar } from './StatusBar.jsx';
 // resolve to single entries via Y.js last-write-wins on the same keys
 const DEFAULT_LIST_ID = '00000000-0000-0000-0000-000000000001';
 const DEFAULT_ITEMS = [
-  { id: '00000000-0000-0000-0001-000000000001', text: 'Hafermilch' , checked: false },
-  { id: '00000000-0000-0000-0001-000000000002', text: 'Brot', checked: false },
-  { id: '00000000-0000-0000-0001-000000000003', text: 'Tomaten' , checked: true },
+  { text: 'Hafermilch', checked: false },
+  { text: 'Brot', checked: false },
+  { text: 'Tomaten', checked: true },
 ];
 
 export function HomeScreen({ onOpenList }) {
@@ -26,9 +26,9 @@ export function HomeScreen({ onOpenList }) {
     const { ydoc } = getListDoc(DEFAULT_LIST_ID);
     const yItems = ydoc.getArray('items');
     if (yItems.length > 0) return;
-      const maps = DEFAULT_ITEMS.map(({ id, text, checked }) => {
+      const maps = DEFAULT_ITEMS.map(({ text, checked }) => {
       const m = new Y.Map();
-      m.set('id', id);
+      m.set('id', crypto.randomUUID());
       m.set('text', text);
       m.set('checked', checked);
       return m;
