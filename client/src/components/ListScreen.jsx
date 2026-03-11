@@ -28,7 +28,9 @@ export function ListScreen({ listId, listName, onBack }) {
             className="clear-btn"
             onClick={() => {
               const url = `${location.origin}${location.pathname}#/list/${listId}`;
-              if (navigator.clipboard) {
+              if (navigator.share) {
+                navigator.share({ title: listName || 'Shopping List', url }).catch(() => {});
+              } else if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).catch(() => window.prompt('Copy this link:', url));
               } else {
                 window.prompt('Copy this link:', url);
