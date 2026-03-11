@@ -107,6 +107,12 @@ export function HomeScreen({ onOpenList }) {
             <button className="modal-share-btn" onClick={handleShare}>
               Share household link
             </button>
+            <button className="modal-share-btn modal-share-btn--secondary" onClick={() => {
+              const url = location.origin + location.pathname;
+              navigator.clipboard.writeText(url).catch(() => {});
+            }}>
+              Copy link
+            </button>
             <button className="modal-close-btn" onClick={() => setShowInstructions(false)}>
               Close
             </button>

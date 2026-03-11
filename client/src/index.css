@@ -451,6 +451,16 @@ html, body {
   background: #15803d;
 }
 
+.modal-share-btn--secondary {
+  background: white;
+  color: var(--green);
+  border: 1.5px solid var(--green);
+}
+
+.modal-share-btn--secondary:active {
+  background: var(--green-light);
+}
+
 .modal-close-btn {
   height: var(--touch);
   border: 1.5px solid var(--border);
