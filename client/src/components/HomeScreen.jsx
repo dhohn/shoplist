@@ -1,40 +1,14 @@
 import { useState, useEffect } from 'react';
-import * as Y from 'yjs';
 import { useListIndex } from '../useListIndex.js';
-import { getIndexDoc, getListDoc } from '../ydoc.js';
+import { getIndexDoc } from '../ydoc.js';
 import { StatusBar } from './StatusBar.jsx';
 
-// Fixed UUIDs ensure concurrent first-visits from multiple browsers
-// resolve to single entries via Y.js last-write-wins on the same keys
-const DEFAULT_LIST_ID = '00000000-0000-0000-0000-000000000001';
-const DEFAULT_ITEMS = [
-  { text: 'Hafermilch', checked: false },
-  { text: 'Brot', checked: false },
-  { text: 'Tomaten', checked: true },
-];
 
 export function HomeScreen({ onOpenList }) {
   const { lists, addList, removeList, indexReady, householdName, setHouseholdName } = useListIndex();
   const { wsProvider, idbPersistence } = getIndexDoc();
   const [showInstructions, setShowInstructions] = useState(false);
 
-  // Seed a default list with items on first visit to a fresh household.
-  // Fixed UUIDs for both list and items prevent duplicates from concurrent opens.
-  useEffect(() => {
-    if (!indexReady || lists.length > 0) return;
-    addList('Einkaufen', DEFAULT_LIST_ID);
-    const { ydoc } = getListDoc(DEFAULT_LIST_ID);
-    const yItems = ydoc.getArray('items');
-    if (yItems.length > 0) return;
-      const maps = DEFAULT_ITEMS.map(({ text, checked }) => {
-      const m = new Y.Map();
-      m.set('id', crypto.randomUUID());
-      m.set('text', text);
-      m.set('checked', checked);
-      return m;
-    });
-    ydoc.transact(() => yItems.push(maps));
-  }, [indexReady]);
 
   function handleNewList() {
     const name = window.prompt('List name:');
