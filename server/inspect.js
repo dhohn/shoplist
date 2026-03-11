@@ -28,7 +28,9 @@ function printDoc(docName, filePath) {
   // Try to read as a list index (Y.Map of lists)
   const yLists = ydoc.getMap('lists');
   if (yLists.size > 0) {
-    console.log(`\n📋 Index doc: ${docName} (${stat.size} bytes, modified ${stat.mtime.toLocaleString()})`);
+    const yMeta = ydoc.getMap('meta');
+    const displayName = yMeta.get('householdName') || '(unnamed)';
+    console.log(`\n📋 Index doc: ${docName} — "${displayName}" (${stat.size} bytes, modified ${stat.mtime.toLocaleString()})`);
     yLists.forEach((val, uuid) => {
       const date = new Date(val.createdAt).toLocaleString();
       console.log(`  • [${uuid}] "${val.name}" — created ${date}`);
