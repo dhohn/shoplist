@@ -15,7 +15,7 @@ export default defineConfig({
         theme_color: '#16a34a',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: process.env.VITE_START_PATH || '/',
+        start_url: process.env.VITE_START_PATH || '.',
         icons: [
           {
             src: 'icons/icon-192.png',
